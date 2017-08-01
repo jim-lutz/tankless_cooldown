@@ -54,7 +54,12 @@ decay(TC.est)
 # with non-linear fit
 ggplot() +
   geom_point(data=DT_draws, aes(t_Delay, f_cooldown, colour = model)) + 
-  geom_line(data=DT_est,aes(t_Delay, f_cooldown))
+  geom_line(data=DT_est,aes(t_Delay, f_cooldown)) +
+  labs(x="time since previous draw (minutes)", y="fraction remaining") +
+  ggtitle("Tankless water heater cooldown") +
+  scale_color_discrete(name = "water heater models") +
+  scale_x_continuous(breaks = seq(from =0, to = 600, by = 60))
+  
 
 ggsave(filename = "decay.png")
 

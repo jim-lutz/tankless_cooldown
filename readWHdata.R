@@ -27,27 +27,36 @@ DT_draws <- DT_draws[model != "Navien NP-240",] # that leave 46 draws, 5 models
 # scatter plot, for verification
 ggplot(DT_draws, aes(t_Delay, f_cooldown, colour = model)) + geom_point()
 
-# try finding a non-linear fit
-fit <- nls(formula=f_cooldown ~ exp(-t_Delay/TC), 
-    data = DT_draws
-    )
+# try Maximum Likelihood Estimation
+# first the function
+decay <- function(TC) { # return the error in the fit
+  # trials
+  trials <- exp(-DT_draws$t_Delay/TC)
+  errs <- trials - DT_draws$f_cooldown
+  
+  RMSE <- sqrt(mean(errs)^2)
+  return(RMSE)
+}
+  
 
-summary(fit)
-str(fit)
-str(summary(fit))
-TC.est <- summary(fit)$coefficients[[1]]
+decay(TC=60)
 
+fit <- optim (60, decay, method="Brent", lower=1, upper=1000)
+
+fit$par
+
+TC.est <- fit$par
 DT_est <- data.table(t_Delay=0:600)
 DT_est[,f_cooldown:= exp(-t_Delay/TC.est)]
 
+decay(TC.est)
 
 # with non-linear fit
 ggplot() +
   geom_point(data=DT_draws, aes(t_Delay, f_cooldown, colour = model)) + 
   geom_line(data=DT_est,aes(t_Delay, f_cooldown))
 
-# save data.table
-save(DT_WHs , file=paste0(wd_data,"DT_WHs.RData"))
+ggsave(filename = "decay.png")
 
 
 
